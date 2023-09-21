@@ -9,9 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@base-open/web-api": "https://lf9-static.bytednsdoc.com/obj/eden-cn/jjjpceh7nulojvhj/@base-open-web-api-0.2.0-alpha.18.tgz",
     "@douyinfe/semi-foundation": "^2.38.2",
     "@douyinfe/semi-ui": "^2.38.2",
+    "@lark-base-open/js-sdk": "0.3.0-alpha",
+    "alasql": "^4.1.9",
+    "dayjs": "^1.11.10",
     "next": "^13.4.9",
     "react": "^18.2.0",
     "react-dom": "18.2.0",
