@@ -1,74 +1,86 @@
 'use client'
-import { bitable, TableMeta } from "@base-open/web-api";
-import { Button, Form } from '@douyinfe/semi-ui';
+import alasql from "alasql";
+import { IFieldMeta, IGetRecordsResponse, bitable } from "@lark-base-open/js-sdk";
+import { Button, Col, Form, Input, Row, Table } from '@douyinfe/semi-ui';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { BaseFormApi } from '@douyinfe/semi-foundation/lib/es/form/interface';
 import styles from './index.module.css';
 
-export default function App() {
-  const [tableMetaList, setTableMetaList] = useState<TableMeta[]>();
-  const formApi = useRef<BaseFormApi>();
-  const addRecord = useCallback(async ({ table: tableId }: { table: string }) => {
-    if (tableId) {
-      const table = await bitable.base.getTableById(tableId);
-      table.addRecord({
-        fields: {},
-      });
-    }
-  }, []);
-  useEffect(() => {
-    Promise.all([bitable.base.getTableMetaList(), bitable.base.getSelection()])
-      .then(([metaList, selection]) => {
-        setTableMetaList(metaList);
-        formApi.current?.setValues({ table: selection.tableId });
-      });
-  }, []);
+function transData(data: IGetRecordsResponse, fields: IFieldMeta[]) {
+  const res = data.records.map((record) => {
+    const obj: any = {};
+    fields.forEach((field) => {
+      const cell = record.fields[field.id];
+      fieldsMapName[field.id] = field.name;
+      fieldsMapId[field.name] = field.id;
+      obj[field.id] = typeof cell === 'object' ? cell?.text ?? cell?.map?.(item => item.text ?? item.name).join(",") : cell;
+    });
+    return obj;
+  });
+  return res;
+}
 
+let tableData: any = [];
+let fieldsMapName:any = {};
+let fieldsMapId: any = {}
+
+export default function App() {
+  const [sql, setSql] = useState<string>("select * from ?");
+  const [result, setResult] = useState();
+  const [columns, setColumns] = useState();
+  const onClick = useCallback(async () => {
+    console.log(sql);
+    let tsql = sql;
+    const fields = Object.keys(fieldsMapId);
+    fields.sort((a,b) => b.length - a.length).forEach((field) => {
+      tsql = tsql.replaceAll(field, fieldsMapId[field] || field);
+    });
+    const res = alasql(tsql, [tableData]); // select 功能模块 from ?
+    console.log(tsql, res);
+    const columns = Object.keys(res[0] || {}).map((id) => {
+      return {
+        title: fieldsMapName[id] || id,
+        width: 100,
+        dataIndex: id,
+        key: id,
+      }
+    })
+    setColumns(columns);
+    setResult(res);
+  }, [sql]);
+  const onChange = useCallback((val: string) => {
+    console.log('sql', val);
+    
+    setSql(val)
+  }, [])
+  useEffect(() => {
+    (async () => { 
+      console.log('请求表格数据');
+      
+      const selection = await bitable.base.getSelection();
+      const table = await bitable.base.getTableById(selection.tableId);
+      const fields = await table.getFieldMetaList();
+      const res = await table.getRecords({ pageSize: 1000 });
+      console.log('data:', res)
+      const jsonData = transData(res, fields);
+      console.log('trans:', jsonData)
+      tableData = jsonData;
+    })()
+  }, []);
+  
   return (
     <main className={styles.main}>
-      <h4 className={styles.h4}>
-        Edit <code className={styles.code}>src/App.tsx</code> and save to reload
-      </h4>
-      <Form labelPosition='top' onSubmit={addRecord} getFormApi={(baseFormApi: BaseFormApi) => formApi.current = baseFormApi}>
-        <Form.Slot label="Development guide">
-          <div>
-            <a href="https://lark-technologies.larksuite.com/docx/HvCbdSzXNowzMmxWgXsuB2Ngs7d" target="_blank"
-              rel="noopener noreferrer">
-              Base Extension Scripts Guide
-            </a>
-            、
-            <a href="https://bytedance.feishu.cn/docx/HazFdSHH9ofRGKx8424cwzLlnZc" target="_blank"
-              rel="noopener noreferrer">
-              扩展脚本开发指南
-            </a>
-          </div>
-        </Form.Slot>
-        <Form.Slot label="API">
-          <div>
-            <a href="https://lark-technologies.larksuite.com/docx/Y6IcdywRXoTYSOxKwWvuLK09sFe" target="_blank"
-              rel="noopener noreferrer">
-              Base Extension Scripts Front-end API
-            </a>
-            、
-            <a href="https://bytedance.feishu.cn/docx/HjCEd1sPzoVnxIxF3LrcKnepnUf" target="_blank"
-              rel="noopener noreferrer">
-              扩展脚本API
-            </a>
-          </div>
-        </Form.Slot>
-        <Form.Select field='table' label='Select Table' placeholder="Please select a Table" style={{ width: '100%' }}>
-          {
-            Array.isArray(tableMetaList) && tableMetaList.map(({ name, id }) => {
-              return (
-                <Form.Select.Option key={id} value={id}>
-                  {name}
-                </Form.Select.Option>
-              );
-            })
-          }
-        </Form.Select>
-        <Button theme='solid' htmlType='submit'>Add Record</Button>
-      </Form>
+      <Row>
+        <Col span={20}>
+          <Input defaultValue='select * from ?' onChange={onChange}></Input>
+        </Col>
+        <Col span={4}>
+          <Button type="primary" block theme="solid" onClick={onClick}>查询</Button>
+        </Col>
+      </Row>
+      <div>
+        <Table columns={columns} dataSource={result} pagination={false} />
+      </div>
     </main>
   )
 }
