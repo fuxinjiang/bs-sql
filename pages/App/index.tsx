@@ -10,10 +10,10 @@ function transData(data: IGetRecordsResponse, fields: IFieldMeta[]) {
   const res = data.records.map((record) => {
     const obj: any = {};
     fields.forEach((field) => {
-      const cell = record.fields[field.id];
+      const cell = record.fields[field.id] as any;
       fieldsMapName[field.id] = field.name;
       fieldsMapId[field.name] = field.id;
-      obj[field.id] = typeof cell === 'object' ? cell?.text ?? cell?.map?.(item => item.text ?? item.name).join(",") : cell;
+      obj[field.id] = typeof cell === 'object' ? cell?.text ?? cell?.map?.((item: any) => item.text ?? item.name).join(",") : cell;
     });
     return obj;
   });
@@ -26,8 +26,8 @@ let fieldsMapId: any = {}
 
 export default function App() {
   const [sql, setSql] = useState<string>("select * from ?");
-  const [result, setResult] = useState();
-  const [columns, setColumns] = useState();
+  const [result, setResult] = useState<any>();
+  const [columns, setColumns] = useState<any>();
   const onClick = useCallback(async () => {
     console.log(sql);
     let tsql = sql;
@@ -58,6 +58,7 @@ export default function App() {
       console.log('请求表格数据');
       
       const selection = await bitable.base.getSelection();
+      if (!selection?.tableId) return;
       const table = await bitable.base.getTableById(selection.tableId);
       const fields = await table.getFieldMetaList();
       const res = await table.getRecords({ pageSize: 1000 });
