@@ -5,6 +5,7 @@ import { Button, Col, Form, Input, Row, Table } from '@douyinfe/semi-ui';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { BaseFormApi } from '@douyinfe/semi-foundation/lib/es/form/interface';
 import styles from './index.module.css';
+import { sqlFieldReplace } from "../../utils/shared";
 
 function transData(data: IGetRecordsResponse, fields: IFieldMeta[]) {
   const res = data.records.map((record) => {
@@ -30,11 +31,7 @@ export default function App() {
   const [columns, setColumns] = useState<any>();
   const onClick = useCallback(async () => {
     console.log(sql);
-    let tsql = sql;
-    const fields = Object.keys(fieldsMapId);
-    fields.sort((a,b) => b.length - a.length).forEach((field) => {
-      tsql = tsql.replaceAll(field, fieldsMapId[field] || field);
-    });
+    let tsql = sqlFieldReplace(sql, fieldsMapId);
     const res = alasql(tsql, [tableData]); // select 功能模块 from ?
     console.log(tsql, res);
     const columns = Object.keys(res[0] || {}).map((id) => {
@@ -73,7 +70,7 @@ export default function App() {
     <main className={styles.main}>
       <Row>
         <Col span={20}>
-          <Input defaultValue='select * from ?' onChange={onChange}></Input>
+          <Input defaultValue={sql} onChange={onChange}></Input>
         </Col>
         <Col span={4}>
           <Button type="primary" block theme="solid" onClick={onClick}>查询</Button>
