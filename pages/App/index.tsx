@@ -1,6 +1,6 @@
 'use client'
 import alasql from "alasql";
-import { IFieldMeta, IGetRecordsResponse, bitable } from "@lark-base-open/js-sdk";
+import type { IFieldMeta, IGetRecordsResponse } from "@lark-base-open/js-sdk";
 import { Button, Col, Form, Input, Row, Table } from '@douyinfe/semi-ui';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { BaseFormApi } from '@douyinfe/semi-foundation/lib/es/form/interface';
@@ -56,7 +56,7 @@ export default function App() {
   useEffect(() => {
     (async () => { 
       console.log('请求表格数据');
-      
+      const {bitable } = await import('@lark-base-open/js-sdk')
       const selection = await bitable.base.getSelection();
       if (!selection?.tableId) return;
       const table = await bitable.base.getTableById(selection.tableId);
