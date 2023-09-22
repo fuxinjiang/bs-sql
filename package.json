@@ -6,11 +6,12 @@
     "dev": "next dev --port 3000 --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start --port 3000 --hostname 0.0.0.0",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest"
   },
   "dependencies": {
-    "@douyinfe/semi-foundation": "^2.38.2",
-    "@douyinfe/semi-ui": "^2.38.2",
+    "@douyinfe/semi-foundation": "^2.43.2",
+    "@douyinfe/semi-ui": "^2.43.2",
     "@lark-base-open/js-sdk": "0.3.0-alpha",
     "alasql": "^4.1.9",
     "dayjs": "^1.11.10",
@@ -20,11 +21,13 @@
     "reset-css": "^5.0.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.5",
     "@types/node": "20.4.0",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
     "eslint": "^8.44.0",
     "eslint-config-next": "^13.4.9",
+    "jest": "^29.7.0",
     "typescript": "^5.1.6"
   }
 }
