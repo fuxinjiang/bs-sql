@@ -87,18 +87,18 @@ export default function App() {
 
   return (
     <main className={styles.main}>
-      <Row>
+      <Row style={{ padding: "0.5rem" }}>
         <Col span={20}>
           <Input defaultValue={sql} onChange={onChange}></Input>
         </Col>
-        <Col span={4}>
+        <Col span={4} style={{ paddingLeft: "5px" }}>
           <Button type="primary" block theme="solid" onClick={onClick}>
-            查询
+            Query
           </Button>
         </Col>
       </Row>
       {error && (
-        <div style={{ margin: "5px 0" }}>
+        <div style={{ margin: "0px 0.5rem" }}>
           <Banner
             fullMode={false}
             type="warning"
