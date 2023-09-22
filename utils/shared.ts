@@ -11,7 +11,7 @@ export function sqlFieldReplace(sql: string, replace: Record<string, string>) {
     ) {
       return trimmedMatch.replace(/\((.+)\)/gm, (match, p1) => {
         const replacement = replace[p1];
-        return `(${replacement || match})`;
+        return `(${replacement || p1})`;
       });
     }
     return replacement || match;
