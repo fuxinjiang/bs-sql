@@ -34,6 +34,7 @@ export function useQuery() {
         setResult(res);
       } catch (error) {
         console.error(error);
+        setError(String(error));
       }
     },
     [fetchData, fieldsMapId, fieldsMapName]
