@@ -21,7 +21,14 @@ export default function App() {
   const [sql, setSql] = useState<string>("select * from ?");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { onExec, error, pageSize, total, columns, result } = useQuery();
+  const {
+    onExec,
+    error,
+    pageSize = 0,
+    total = 0,
+    columns,
+    result,
+  } = useQuery();
 
   const onChange = useCallback((val: string) => setSql(val), []);
   const onQuery = useCallback(() => {
@@ -31,13 +38,14 @@ export default function App() {
 
   const [loading, setLoading] = useState(false);
   const pagination: TablePagination =
-    pageSize > total
+    pageSize >= total
       ? false
       : {
           currentPage: currentPage,
           size: "small",
           pageSize,
           total,
+          position: "top",
           hideOnSinglePage: true,
           formatPageText: (p) =>
             `当前 SQL 查询的是 ${p?.currentStart}条 到 ${p?.currentEnd}条 的数据`,
