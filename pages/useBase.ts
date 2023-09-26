@@ -5,19 +5,25 @@ let fieldsMapName: any = {};
 let fieldsMapId: any = {};
 let pageTokens = new Map();
 let hasMore = true;
-let pageSize = 10;
+let pageSize = 2000;
 let total = 0;
+let selection: any;
+let table: any;
+let fields: any;
 async function fetchData(pageNum = 0, reset?: boolean) {
   const { bitable } = await import("@lark-base-open/js-sdk");
   if (reset) {
     pageTokens.clear();
     hasMore = true;
+    selection = undefined;
+    table = undefined;
+    fields = undefined;
   }
 
-  const selection = await bitable.base.getSelection();
+  selection = selection ?? (await bitable.base.getSelection());
   if (!selection?.tableId) throw new Error("sdk error");
-  const table = await bitable.base.getTableById(selection.tableId);
-  const fields = await table.getFieldMetaList();
+  table = table ?? (await bitable.base.getTableById(selection.tableId));
+  fields = fields ?? (await table.getFieldMetaList());
   const pageToken = pageTokens.get(pageNum);
   // console.log("pageToken", pageToken, pageTokens);
   const res = await table.getRecords({
@@ -52,7 +58,7 @@ async function fetchDataAll() {
     const { data: data2, ...t } = await fetchData(i, i === 0);
     data = data.concat(data2);
     hasMore = t.hasMore;
-    pageSize = t.pageSize;
+    pageSize = t.total;
     total = t.total;
     tableName = t.tableName;
     if (!hasMore) {
