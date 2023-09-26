@@ -5,7 +5,7 @@ let fieldsMapName: any = {};
 let fieldsMapId: any = {};
 let pageTokens = new Map();
 let hasMore = true;
-let pageSize = 1000;
+let pageSize = 500;
 let total = 0;
 async function fetchData(
   pageNum = 0,
