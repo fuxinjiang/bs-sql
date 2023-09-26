@@ -14,76 +14,41 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BaseFormApi } from "@douyinfe/semi-foundation/lib/es/form/interface";
 import styles from "./index.module.css";
 import { sqlFieldReplace } from "../../utils/shared";
-
-function transData(data: IGetRecordsResponse, fields: IFieldMeta[]) {
-  const res = data.records.map((record) => {
-    const obj: any = {};
-    fields.forEach((field) => {
-      const cell = record.fields[field.id] as any;
-      fieldsMapName[field.id] = field.name;
-      fieldsMapId[field.name] = field.id;
-      obj[field.id] =
-        typeof cell === "object"
-          ? cell?.text ??
-            cell?.map?.((item: any) => item.text ?? item.name).join(",")
-          : cell;
-    });
-    return obj;
-  });
-  return res;
-}
-
-let tableData: any = [];
-let fieldsMapName: any = {};
-let fieldsMapId: any = {};
+import { useQuery } from "../useQuery";
+import { TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 
 export default function App() {
   const [sql, setSql] = useState<string>("select * from ?");
-  const [result, setResult] = useState<any>();
-  const [error, setError] = useState<any>();
-  const [columns, setColumns] = useState<any>();
-  const onClick = useCallback(async () => {
-    console.log(sql);
-    setError("");
-    let tsql = sqlFieldReplace(sql, fieldsMapId);
-    try {
-      const res = alasql(tsql, [tableData]); // select 功能模块 from ?
-      console.log(tsql, res);
-      const columns = Object.keys(res[0] || {}).map((id) => {
-        return {
-          title: fieldsMapName[id] || id,
-          width: 100,
-          dataIndex: id,
-          key: id,
-        };
-      });
-      setColumns(columns);
-      setResult(res);
-    } catch (error) {
-      console.error(error);
-      setError(String(error));
-    }
-  }, [sql]);
-  const onChange = useCallback((val: string) => {
-    console.log("sql", val);
+  const [currentPage, setCurrentPage] = useState(1);
 
-    setSql(val);
-  }, []);
-  useEffect(() => {
-    (async () => {
-      console.log("请求表格数据");
-      const { bitable } = await import("@lark-base-open/js-sdk");
-      const selection = await bitable.base.getSelection();
-      if (!selection?.tableId) return;
-      const table = await bitable.base.getTableById(selection.tableId);
-      const fields = await table.getFieldMetaList();
-      const res = await table.getRecords({ pageSize: 1000 });
-      console.log("data:", res);
-      const jsonData = transData(res, fields);
-      console.log("trans:", jsonData);
-      tableData = jsonData;
-    })();
-  }, []);
+  const { onExec, error, pageSize, total, columns, result } = useQuery();
+
+  const onChange = useCallback((val: string) => setSql(val), []);
+  const onQuery = useCallback(() => {
+    setCurrentPage(1);
+    onExec(sql, 0, true);
+  }, [onExec, sql]);
+
+  const [loading, setLoading] = useState(false);
+  const pagination: TablePagination =
+    pageSize > total
+      ? false
+      : {
+          currentPage: currentPage,
+          size: "small",
+          pageSize,
+          total,
+          hideOnSinglePage: true,
+          formatPageText: (p) =>
+            `当前 SQL 查询的是 ${p?.currentStart}条 到 ${p?.currentEnd}条 的数据`,
+          onPageChange: async (page: number) => {
+            // console.log("onPageChange", page);
+            setLoading(true);
+            setCurrentPage(page);
+            await onExec(sql, page - 1, false);
+            setLoading(false);
+          },
+        };
 
   return (
     <main className={styles.main}>
@@ -92,7 +57,7 @@ export default function App() {
           <Input defaultValue={sql} onChange={onChange}></Input>
         </Col>
         <Col span={4} style={{ paddingLeft: "5px" }}>
-          <Button type="primary" block theme="solid" onClick={onClick}>
+          <Button type="primary" block theme="solid" onClick={onQuery}>
             Query
           </Button>
         </Col>
@@ -118,7 +83,12 @@ export default function App() {
         </div>
       )}
       <div>
-        <Table columns={columns} dataSource={result} pagination={false} />
+        <Table
+          columns={columns}
+          dataSource={result}
+          pagination={pagination}
+          loading={loading}
+        />
       </div>
     </main>
   );
