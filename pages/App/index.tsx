@@ -133,7 +133,7 @@ export default function App() {
     }
     setLoading(true);
     setCurrentPage(1);
-    await onExec(sql, 0, true);
+    await onExec(sql, -1, true);
     setLoading(false);
   }, [loading, onExec, sql]);
 
