@@ -8,6 +8,9 @@ dependencies:
   '@douyinfe/semi-foundation':
     specifier: ^2.43.2
     version: registry.npmjs.org/@douyinfe/semi-foundation@2.43.2
+  '@douyinfe/semi-icons':
+    specifier: ^2.44.0
+    version: registry.npmjs.org/@douyinfe/semi-icons@2.44.0(react@18.2.0)
   '@douyinfe/semi-ui':
     specifier: ^2.43.2
     version: registry.npmjs.org/@douyinfe/semi-ui@2.43.2(react-dom@18.2.0)(react@18.2.0)
@@ -602,6 +605,18 @@ packages:
     id: registry.npmjs.org/@douyinfe/semi-icons/2.43.2
     name: '@douyinfe/semi-icons'
     version: 2.43.2
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      classnames: registry.npmjs.org/classnames@2.3.2
+      react: registry.npmjs.org/react@18.2.0
+    dev: false
+
+  registry.npmjs.org/@douyinfe/semi-icons@2.44.0(react@18.2.0):
+    resolution: {integrity: sha512-hWFGNLjGbZl4HSUcnFzcTfxSOGcQmqSJdRYDDiaMB9E8JaqEJO9SA0YRtDNkQ9lUJL3acSts/Oe2oNWUVUkW+Q==, registry: https://registry.yarnpkg.com/, tarball: https://registry.npmjs.org/@douyinfe/semi-icons/-/semi-icons-2.44.0.tgz}
+    id: registry.npmjs.org/@douyinfe/semi-icons/2.44.0
+    name: '@douyinfe/semi-icons'
+    version: 2.44.0
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
     dependencies:
