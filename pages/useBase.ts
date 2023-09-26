@@ -5,17 +5,9 @@ let fieldsMapName: any = {};
 let fieldsMapId: any = {};
 let pageTokens = new Map();
 let hasMore = true;
-let pageSize = 500;
+let pageSize = 10;
 let total = 0;
-async function fetchData(
-  pageNum = 0,
-  reset?: boolean
-): Promise<{
-  hasMore: boolean;
-  pageSize: number;
-  total: number;
-  data: any[];
-}> {
+async function fetchData(pageNum = 0, reset?: boolean) {
   const { bitable } = await import("@lark-base-open/js-sdk");
   if (reset) {
     pageTokens.clear();
@@ -27,24 +19,53 @@ async function fetchData(
   const table = await bitable.base.getTableById(selection.tableId);
   const fields = await table.getFieldMetaList();
   const pageToken = pageTokens.get(pageNum);
-  console.log("pageToken", pageToken, pageTokens);
+  // console.log("pageToken", pageToken, pageTokens);
   const res = await table.getRecords({
     pageSize: pageSize,
     pageToken: pageToken,
   });
-  console.log("data:", res);
+  // console.log("data:", res);
   const data = transData(res, fields);
-  console.log("trans:", data);
+  // console.log("trans:", data);
   hasMore = res.hasMore;
   pageTokens.set(pageNum + 1, res.pageToken);
   if (pageNum === 0) {
     total = res.total;
   }
   return {
+    tableName: await table.getName(),
     hasMore,
     pageSize,
     total,
     data,
+  };
+}
+
+async function fetchDataAll() {
+  let data: any[] = [];
+  let hasMore: boolean = false;
+  let pageSize: number = 0;
+  let total: number = 0;
+  let tableName: string = "";
+
+  for (let i = 0; i < 100; i++) {
+    const { data: data2, ...t } = await fetchData(i, i === 0);
+    data = data.concat(data2);
+    hasMore = t.hasMore;
+    pageSize = t.pageSize;
+    total = t.total;
+    tableName = t.tableName;
+    if (!hasMore) {
+      break;
+    }
+  }
+
+  return {
+    data,
+    hasMore,
+    pageSize,
+    total,
+    tableName,
   };
 }
 
@@ -71,5 +92,6 @@ export function useBase() {
     fetchData,
     fieldsMapName,
     fieldsMapId,
+    fetchDataAll,
   };
 }
