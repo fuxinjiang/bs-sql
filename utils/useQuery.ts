@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useBase } from "./useBase";
-import { sqlFieldReplace } from "../utils/shared";
+import { sqlFieldReplace } from "./shared";
 import alasql from "alasql";
 
 export function useQuery() {

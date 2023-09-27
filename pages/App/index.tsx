@@ -18,7 +18,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BaseFormApi } from "@douyinfe/semi-foundation/lib/es/form/interface";
 import styles from "./index.module.css";
 import { sqlFieldReplace } from "../../utils/shared";
-import { useQuery } from "../useQuery";
+import { useQuery } from "../../utils/useQuery";
 import { ColumnProps, TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import Icon, {
   IconAscend,
