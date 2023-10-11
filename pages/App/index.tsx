@@ -78,7 +78,7 @@ async function exportXls(
   columns: TableColumnProperties[],
   rows: any[]
 ) {
-  const ExcelJS = await import("exceljs");
+  const ExcelJS = await import("exceljs/dist/exceljs");
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Sheet1");
   // 将表格添加到工作表
