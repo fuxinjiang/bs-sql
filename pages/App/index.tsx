@@ -26,7 +26,7 @@ import Icon, {
   IconGithubLogo,
   IconLink,
 } from "@douyinfe/semi-icons";
-import ExcelJS, { TableColumnProperties } from "exceljs";
+import type { TableColumnProperties } from "exceljs";
 
 function downloadBufferAsFile(buffer: ArrayBuffer, fileName: string) {
   // 创建一个新的 Blob 对象，将 buffer 数据放入其中
@@ -78,6 +78,7 @@ async function exportXls(
   columns: TableColumnProperties[],
   rows: any[]
 ) {
+  const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Sheet1");
   // 将表格添加到工作表
