@@ -1,5 +1,9 @@
 import { useEffect } from "react";
-import type { IFieldMeta, IGetRecordsResponse } from "@lark-base-open/js-sdk";
+import {
+  type IFieldMeta,
+  type IGetRecordsResponse,
+} from "@lark-base-open/js-sdk";
+import { format } from "date-fns";
 
 let fieldsMapName: any = {};
 let fieldsMapId: any = {};
@@ -82,11 +86,21 @@ function transData(data: IGetRecordsResponse, fields: IFieldMeta[]) {
       const cell = record.fields[field.id] as any;
       fieldsMapName[field.id] = field.name;
       fieldsMapId[field.name] = field.id;
-      obj[field.id] =
-        typeof cell === "object"
-          ? cell?.text ??
-            cell?.map?.((item: any) => item.text ?? item.name).join(",")
-          : cell;
+      console.log(field, field.name, cell);
+
+      if (field.type === 5 && "dateFormat" in field.property && cell) {
+        // DateTime
+        obj[field.id] = format(cell, field.property?.dateFormat);
+      } else {
+        obj[field.id] =
+          typeof cell === "object"
+            ? cell?.text ??
+              cell
+                ?.map?.((item: any) => item?.text ?? item?.name)
+                .filter((item: any) => item)
+                .join(",")
+            : cell;
+      }
     });
     return obj;
   });
