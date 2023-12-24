@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
-import { useBase } from "./useBase";
-import { sqlFieldReplace } from "./shared";
-import alasql from "alasql";
+import { BsSdk } from "../libs/bs-sdk/BsSdk";
+import { BsSql } from "../libs/bs-sql";
+
+const bsSdk = new BsSdk({});
+const bsSQL = new BsSql(bsSdk);
 
 export function useQuery() {
-  const { fetchData, fetchDataAll, fieldsMapId, fieldsMapName } = useBase();
   const [result, setResult] = useState<any>();
   const [error, setError] = useState<any>();
   const [columns, setColumns] = useState<any>();
@@ -13,31 +14,34 @@ export function useQuery() {
 
   const exec = useCallback(
     async (sql: string, pageIndex: number, reset?: boolean) => {
-      const { data, total, pageSize, hasMore, tableName } =
-        pageIndex === -1
-          ? await fetchDataAll()
-          : await fetchData(pageIndex, reset);
-      let tsql = sqlFieldReplace(sql, fieldsMapId);
-      const result = alasql(tsql, [data]); // select 功能模块 from ?
-      // console.log(tsql, res);
-      const columns = Object.keys(result[0] || {}).map((id) => {
-        return {
-          title: fieldsMapName[id] || id,
-          width: 100,
-          dataIndex: id,
-          key: id,
-        };
+      const result = await bsSQL.query(sql);
+      const [tableListCtx] = await bsSQL.emFetchTableList.wait();
+      const [tableFields] = await bsSQL.emFetchTableListFields.wait();
+      const fieldIdMapName = new Map<string, string>();
+      tableFields.forEach((t: any) => {
+        Object.keys(t.fieldsMapId).forEach((id) => {
+          fieldIdMapName.set(id, t.fieldsMapId[id]);
+        });
       });
+      const columns = Object.keys(result[0] || {})
+        .filter((item) => !["_id", "_raw_"].includes(item))
+        .map((id) => {
+          return {
+            title: fieldIdMapName.get(id) || id,
+            width: 100,
+            dataIndex: id,
+            key: id,
+          };
+        });
       return {
-        tableName,
+        tableName: await tableListCtx.tableList[0].getName(),
         columns,
         result,
         total,
         pageSize,
-        hasMore,
       };
     },
-    [fetchData, fetchDataAll, fieldsMapId, fieldsMapName]
+    []
   );
 
   const onExec = useCallback(
@@ -71,8 +75,5 @@ export function useQuery() {
     pageSize,
     setPageSize,
     total,
-    fetchData,
-    fieldsMapId,
-    fieldsMapName,
   };
 }
