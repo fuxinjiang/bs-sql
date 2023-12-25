@@ -1,6 +1,3 @@
-"use client";
-import alasql from "alasql";
-import type { IFieldMeta, IGetRecordsResponse } from "@lark-base-open/js-sdk";
 import {
   Banner,
   Button,
@@ -15,9 +12,7 @@ import {
   Toast,
 } from "@douyinfe/semi-ui";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { BaseFormApi } from "@douyinfe/semi-foundation/lib/es/form/interface";
 import styles from "./index.module.css";
-import { sqlFieldReplace } from "../../utils/shared";
 import { useQuery } from "../../utils/useQuery";
 import { ColumnProps, TablePagination } from "@douyinfe/semi-ui/lib/es/table";
 import Icon, {
