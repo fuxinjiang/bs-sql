@@ -13,7 +13,7 @@
     "@douyinfe/semi-foundation": "^2.43.2",
     "@douyinfe/semi-icons": "^2.44.0",
     "@douyinfe/semi-ui": "^2.43.2",
-    "@lark-base-open/js-sdk": "0.3.0-alpha",
+    "@lark-base-open/js-sdk": "^0.3.8",
     "alasql": "^4.1.9",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.10",
