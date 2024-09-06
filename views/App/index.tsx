@@ -12,6 +12,11 @@ import {
   Toast,
 } from "@douyinfe/semi-ui";
 import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  PermissionEntity,
+  OperationType,
+  bitable,
+} from "@lark-base-open/js-sdk";
 import styles from "./index.module.css";
 import { useQuery } from "../../utils/useQuery";
 import { ColumnProps, TablePagination } from "@douyinfe/semi-ui/lib/es/table";
@@ -155,6 +160,16 @@ export default function App() {
         };
   const [exportLoading, setExportLoading] = useState(false);
   const onExport = useCallback(async () => {
+    const bool = await bitable.base.getPermission({
+      entity: PermissionEntity.Base,
+      type: OperationType.Printable,
+    });
+    if (!bool) {
+      Toast.warning({
+        content: "no permission",
+      });
+      return;
+    }
     if (exportLoading) {
       Toast.warning({
         content: "exporting...",
