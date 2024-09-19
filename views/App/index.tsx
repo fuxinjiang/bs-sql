@@ -1,32 +1,63 @@
-import {
-  Banner,
-  Button,
-  Col,
-  Dropdown,
-  Form,
-  Input,
-  Progress,
-  Row,
-  Spin,
-  Table,
-  Toast,
-} from "@douyinfe/semi-ui";
-import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  PermissionEntity,
-  OperationType,
-  bitable,
-} from "@lark-base-open/js-sdk";
+import {Banner, Button, Col, Dropdown, Form, Input, Progress, Row, Spin, Table, Toast} from "@douyinfe/semi-ui";
+import {useState, useEffect, useRef, useCallback} from "react";
+import {PermissionEntity, OperationType, bitable, IFieldMeta, ITableMeta} from "@lark-base-open/js-sdk";
 import styles from "./index.module.css";
-import { useQuery } from "../../utils/useQuery";
-import { ColumnProps, TablePagination } from "@douyinfe/semi-ui/lib/es/table";
-import Icon, {
-  IconAscend,
-  IconExport,
-  IconGithubLogo,
-  IconLink,
-} from "@douyinfe/semi-icons";
+import {useQuery} from "../../utils/useQuery";
+import {ColumnProps, TablePagination} from "@douyinfe/semi-ui/lib/es/table";
+import Icon, {IconAscend, IconExport, IconGithubLogo, IconLink} from "@douyinfe/semi-icons";
 import type { TableColumnProperties } from "exceljs";
+import {message} from "antd";
+import { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
+
+// 定义 Text2SQL 输入接口信息
+interface Column {
+  name: string;
+  type: string;
+  is_primary: boolean;
+}
+
+interface Tables {
+  name: string;
+  columns: Column[];
+}
+
+interface DbMetadata {
+  db_id: string;
+  tables: Tables[];
+}
+
+interface RequestPayload {
+  request_id: string;
+  query: string;
+  external_knowledge: string[];
+  model: string;
+  stream: boolean;
+  use_explanation: boolean;
+  use_fallback: boolean;
+  use_validator: boolean;
+  db_metadata: DbMetadata;
+}
+
+// 提取db schema information
+async function getMeta(params: { t: TFunction<"translation", undefined> }) {
+  const { t } = params;
+  const { tableId } = await bitable.base.getSelection();
+  if (!tableId) {
+    message.error(t('获取数据表为空'));
+    throw new Error('获取数据表错误');
+  }
+  const table = await bitable.base.getTableById(tableId);
+  const fieldMetaList = await table.getFieldMetaList();
+  const tableMeta = await table.getMeta();
+  const tableMetaList = await bitable.base.getTableMetaList();
+  
+  return {
+    tableMeta,
+    tableMetaList,
+    fieldMetaList,
+  };
+}
 
 function downloadBufferAsFile(buffer: ArrayBuffer, fileName: string) {
   // 创建一个新的 Blob 对象，将 buffer 数据放入其中
@@ -110,8 +141,24 @@ async function exportXls(
 }
 
 export default function App() {
-  const [sql, setSql] = useState<string>("select * from ?");
+  const [query, setQuery] = useState<string>("查询所有数据");
   const [currentPage, setCurrentPage] = useState(1);
+  const { t } = useTranslation();
+  const input = useRef('');
+  // const [loading, setLoading] = useState(false);
+  const [result_sql, setResult] = useState('');
+  const baseInfo = useRef<{
+    tableMeta: ITableMeta;
+    tableMetaList: ITableMeta[];
+    fieldMetaList: IFieldMeta[];
+  }>();
+
+  // 获取线上db信息
+  const getInfo = async () => {
+    const info = await getMeta({ t });
+    baseInfo.current = info;
+    return info;
+  };
 
   const {
     exec,
@@ -123,8 +170,7 @@ export default function App() {
     result,
   } = useQuery();
   const [loading, setLoading] = useState(false);
-
-  const onChange = useCallback((val: string) => setSql(val), []);
+  const onChange = useCallback((val: string) => setQuery(val), []);
   const onQuery = useCallback(async () => {
     if (loading) {
       Toast.warning({
@@ -134,9 +180,42 @@ export default function App() {
     }
     setLoading(true);
     setCurrentPage(1);
+    const info = await getInfo();
+
+    // TODO: type暂时还没有进行额外映射，后续处理
+    const columns = info.fieldMetaList.map(item => ({
+        name: item.name,
+        type: "TEXT",
+        is_primary: item.isPrimary
+      }));
+
+    const requestData: RequestPayload = {
+        request_id: "",
+        query: query,
+        external_knowledge: [],
+        model: "lab-sql-optimized-20240426",
+        stream: false,
+        use_explanation: true,
+        use_fallback: false,
+        use_validator: false,
+        db_metadata: {
+          db_id: "",
+          tables: [
+            {
+              name: info.tableMeta.name,
+              columns: columns
+            }
+          ]
+        }
+      };
+
+    const data = await callApi(requestData);
+    // 前端输出返回结果
+    const sql = String(data.sql)
+    console.log("调用bytebrain nl2sql, 生成sql为:", sql)
     await onExec(sql, -1, true);
     setLoading(false);
-  }, [loading, onExec, sql]);
+  }, [loading, onExec, query]);
 
   const pagination: TablePagination =
     pageSize >= total
@@ -178,7 +257,7 @@ export default function App() {
     }
     setExportLoading(true);
     try {
-      const res = await exec(sql, -1);
+      const res = await exec(query, -1);
       // console.log(res);
       exportXls(
         res.tableName + ".xlsx",
@@ -191,7 +270,7 @@ export default function App() {
       });
     }
     setExportLoading(false);
-  }, [exec, exportLoading, sql]);
+  }, [exec, exportLoading, query]);
   const onHelp = useCallback(() => {
     window.open("http://sqlmother.yupi.icu/#/learn");
   }, []);
@@ -202,7 +281,7 @@ export default function App() {
     <main className={styles.main}>
       <Row style={{ padding: "0.5rem" }}>
         <Col span={18}>
-          <Input defaultValue={sql} onChange={onChange}></Input>
+          <Input defaultValue={query} onChange={onChange}></Input>
         </Col>
         <Col span={4} style={{ paddingLeft: "5px" }}>
           <Button type="primary" block theme="solid" onClick={onQuery}>
@@ -267,3 +346,23 @@ export default function App() {
     </main>
   );
 }
+
+const callApi = async (payload: RequestPayload) => {
+  try {
+    console.log("输入数据,", JSON.stringify(payload))
+    const response = await fetch('https://bytebrain.bytedance.net/openapi/lark/text2sql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload),
+      // mode: 'no-cors', // 添加这一行
+    });
+    const text = await response.json()
+    console.log("输出数据,", text)
+    return text;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+};

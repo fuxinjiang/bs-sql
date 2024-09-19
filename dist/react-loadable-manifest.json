@@ -1,0 +1,20 @@
+{
+  "../node_modules/.pnpm/@lark-base-open+js-sdk@0.3.8/node_modules/@lark-base-open/js-sdk/dist/chunk-LRBCXN34.mjs -> ./RenderMarkDown-LQCNPILZ.mjs": {
+    "id": "../node_modules/.pnpm/@lark-base-open+js-sdk@0.3.8/node_modules/@lark-base-open/js-sdk/dist/chunk-LRBCXN34.mjs -> ./RenderMarkDown-LQCNPILZ.mjs",
+    "files": [
+      "static/chunks/node_modules_pnpm_lark-base-open_js-sdk_0_3_8_node_modules_lark-base-open_js-sdk_dist_RenderM-01b946.js"
+    ]
+  },
+  "../views/App/index.tsx -> exceljs/dist/exceljs": {
+    "id": "../views/App/index.tsx -> exceljs/dist/exceljs",
+    "files": [
+      "static/chunks/node_modules_pnpm_exceljs_4_4_0_node_modules_exceljs_dist_exceljs_js.js"
+    ]
+  },
+  "index.tsx -> ../views/App": {
+    "id": "index.tsx -> ../views/App",
+    "files": [
+      "static/chunks/views_App_index_tsx.js"
+    ]
+  }
+}
