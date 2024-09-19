@@ -1,12 +1,12 @@
-import {Banner, Button, Col, Dropdown, Form, Input, Progress, Row, Spin, Table, Toast} from "@douyinfe/semi-ui";
-import {useState, useEffect, useRef, useCallback} from "react";
-import {PermissionEntity, OperationType, bitable, IFieldMeta, ITableMeta} from "@lark-base-open/js-sdk";
+import { Banner, Button, Col, Dropdown, Form, Input, Progress, Row, Spin, Table, Toast } from "@douyinfe/semi-ui";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { PermissionEntity, OperationType, bitable, IFieldMeta, ITableMeta } from "@lark-base-open/js-sdk";
 import styles from "./index.module.css";
-import {useQuery} from "../../utils/useQuery";
-import {ColumnProps, TablePagination} from "@douyinfe/semi-ui/lib/es/table";
-import Icon, {IconAscend, IconExport, IconGithubLogo, IconLink} from "@douyinfe/semi-icons";
+import { useQuery } from "../../utils/useQuery";
+import { ColumnProps, TablePagination } from "@douyinfe/semi-ui/lib/es/table";
+import Icon, { IconAscend, IconExport, IconGithubLogo, IconLink } from "@douyinfe/semi-icons";
 import type { TableColumnProperties } from "exceljs";
-import {message} from "antd";
+import { message } from "antd";
 import { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -51,7 +51,7 @@ async function getMeta(params: { t: TFunction<"translation", undefined> }) {
   const fieldMetaList = await table.getFieldMetaList();
   const tableMeta = await table.getMeta();
   const tableMetaList = await bitable.base.getTableMetaList();
-  
+
   return {
     tableMeta,
     tableMetaList,
@@ -86,9 +86,9 @@ function tableToMatrix(
   const tdata: any[] = [];
   const tcolumns: TableColumnProperties[] = columns.map(
     (c) =>
-      ({
-        name: c.title,
-      } as TableColumnProperties)
+    ({
+      name: c.title,
+    } as TableColumnProperties)
   );
   for (let i = 0; i < data.length; i++) {
     const d: any = data[i];
@@ -141,6 +141,7 @@ async function exportXls(
 }
 
 export default function App() {
+  const [sql, setSql] = useState('');
   const [query, setQuery] = useState<string>("查询所有数据");
   const [currentPage, setCurrentPage] = useState(1);
   const { t } = useTranslation();
@@ -184,34 +185,35 @@ export default function App() {
 
     // TODO: type暂时还没有进行额外映射，后续处理
     const columns = info.fieldMetaList.map(item => ({
-        name: item.name,
-        type: "TEXT",
-        is_primary: item.isPrimary
-      }));
+      name: item.name,
+      type: "TEXT",
+      is_primary: item.isPrimary
+    }));
 
     const requestData: RequestPayload = {
-        request_id: "",
-        query: query,
-        external_knowledge: [],
-        model: "lab-sql-optimized-20240426",
-        stream: false,
-        use_explanation: true,
-        use_fallback: false,
-        use_validator: false,
-        db_metadata: {
-          db_id: "",
-          tables: [
-            {
-              name: info.tableMeta.name,
-              columns: columns
-            }
-          ]
-        }
-      };
+      request_id: "",
+      query: query,
+      external_knowledge: [],
+      model: "lab-sql-optimized-20240426",
+      stream: false,
+      use_explanation: true,
+      use_fallback: false,
+      use_validator: false,
+      db_metadata: {
+        db_id: "",
+        tables: [
+          {
+            name: info.tableMeta.name,
+            columns: columns
+          }
+        ]
+      }
+    };
 
     const data = await callApi(requestData);
     // 前端输出返回结果
     const sql = String(data.sql)
+    setSql(sql);
     console.log("调用bytebrain nl2sql, 生成sql为:", sql)
     await onExec(sql, -1, true);
     setLoading(false);
@@ -221,22 +223,22 @@ export default function App() {
     pageSize >= total
       ? false
       : {
-          currentPage: currentPage,
-          size: "small",
-          pageSize,
-          total,
-          position: "top",
-          hideOnSinglePage: true,
-          formatPageText: (p) =>
-            `当前 SQL 查询的是 ${p?.currentStart}条 到 ${p?.currentEnd}条 的数据`,
-          onPageChange: async (page: number) => {
-            // console.log("onPageChange", page);
-            setLoading(true);
-            setCurrentPage(page);
-            await onExec(sql, page - 1, false);
-            setLoading(false);
-          },
-        };
+        currentPage: currentPage,
+        size: "small",
+        pageSize,
+        total,
+        position: "top",
+        hideOnSinglePage: true,
+        formatPageText: (p) =>
+          `当前 SQL 查询的是 ${p?.currentStart}条 到 ${p?.currentEnd}条 的数据`,
+        onPageChange: async (page: number) => {
+          // console.log("onPageChange", page);
+          setLoading(true);
+          setCurrentPage(page);
+          await onExec(sql, page - 1, false);
+          setLoading(false);
+        },
+      };
   const [exportLoading, setExportLoading] = useState(false);
   const onExport = useCallback(async () => {
     const bool = await bitable.base.getPermission({
@@ -294,7 +296,7 @@ export default function App() {
             position={"bottomRight"}
             render={
               <Dropdown.Menu>
-                <Dropdown.Item
+                {(<><Dropdown.Item
                   icon={exportLoading ? <Spin /> : <IconExport />}
                   onClick={onExport}
                 >
@@ -305,9 +307,7 @@ export default function App() {
                 </Dropdown.Item>
                 <Dropdown.Item icon={<IconGithubLogo />} onClick={onGithub}>
                   Github
-                </Dropdown.Item>
-                {/* <Dropdown.Item>Menu Item 2</Dropdown.Item>
-                <Dropdown.Item>Menu Item 3</Dropdown.Item> */}
+                </Dropdown.Item></>) as any}
               </Dropdown.Menu>
             }
           >
@@ -335,6 +335,7 @@ export default function App() {
           ></Banner>
         </div>
       )}
+      {sql ? <Row style={{ margin: "0.6rem", padding: '0.5rem', fontSize: '14px', border: '1px solid', whiteSpace: 'pre-wrap' }}>{sql}</Row> : null}
       <div>
         <Table
           columns={columns}
